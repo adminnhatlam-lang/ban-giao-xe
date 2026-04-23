@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Nhận xe công tác</title>
+<style>
+  :root {
+    --blue: #185FA5; --blue-light: #E6F1FB;
+    --green: #0F6E56; --green-light: #E1F5EE;
+    --red: #A32D2D; --red-light: #FCEBEB;
+    --amber: #854F0B; --amber-light: #FAEEDA;
+    --gray: #5F5E5A; --gray-light: #F1EFE8;
+    --border: #E0DDD6; --radius: 12px; --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, 'Segoe UI', sans-serif;
+    background: #F5F3EE;
+    color: #2C2C2A;
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+  header {
+    background: var(--blue);
+    color: #fff;
+    padding: 16px 20px;
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; gap: 12px;
+  }
+  header svg { flex-shrink: 0; }
+  header h1 { font-size: 16px; font-weight: 600; line-height: 1.3; }
+  header p { font-size: 12px; opacity: 0.8; }
+
+  .container { max-width: 600px; margin: 0 auto; padding: 16px; }
+
+  .section {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .section-title {
+    font-size: 13px; font-weight: 600;
+    color: var(--blue);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .section-title .badge {
+    background: var(--blue-light);
+    color: var(--blue);
+    font-size: 11px; padding: 2px 8px;
+    border-radius: 20px; font-weight: 600;
+  }
+
+  label { display: block; font-size: 13px; color: #444; margin-bottom: 5px; font-weight: 500; }
+  label span.req { color: #E24B4A; }
+
+  input[type=text], input[type=tel], input[type=number], select, textarea {
+    width: 100%; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 10px 12px;
+    font-size: 15px; color: #2C2C2A;
+    background: #FAFAF8;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none; border-color: var(--blue);
+    background: #fff; box-shadow: 0 0 0 3px rgba(24,95,165,0.1);
+  }
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  /* Photo upload */
+  .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .photo-item { position: relative; }
+  .photo-label { font-size: 12px; color: #666; margin-bottom: 4px; font-weight: 500; }
+  .photo-box {
+    width: 100%; aspect-ratio: 4/3;
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--gray-light);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    cursor: pointer; overflow: hidden;
+    position: relative; transition: border-color 0.2s;
+  }
+  .photo-box:hover { border-color: var(--blue); }
+  .photo-box.has-photo { border-style: solid; border-color: var(--green); }
+  .photo-box input[type=file] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .photo-box img {
+    width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0;
+  }
+  .photo-box .icon { font-size: 28px; color: #aaa; line-height: 1; }
+  .photo-box .caption { font-size: 11px; color: #888; margin-top: 4px; text-align: center; padding: 0 8px; }
+  .photo-box .ok-badge {
+    display: none; position: absolute; top: 6px; right: 6px;
+    background: var(--green); color: #fff;
+    font-size: 11px; padding: 2px 6px; border-radius: 10px;
+    font-weight: 600;
+  }
+  .photo-box.has-photo .ok-badge { display: block; }
+  .photo-box .remove-btn {
+    display: none; position: absolute; bottom: 6px; right: 6px;
+    background: rgba(163,45,45,0.85); color: #fff;
+    font-size: 18px; width: 26px; height: 26px;
+    border-radius: 50%; border: none; cursor: pointer;
+    align-items: center; justify-content: center; line-height: 1;
+  }
+  .photo-box.has-photo .remove-btn { display: flex; }
+
+  .photo-full { grid-column: 1 / -1; }
+  .photo-full .photo-box { aspect-ratio: 16/9; }
+
+  /* Progress */
+  .progress-bar { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 16px; }
+  .progress-bar-fill { height: 100%; background: var(--blue); border-radius: 2px; transition: width 0.4s; }
+
+  /* Submit */
+  .submit-btn {
+    width: 100%; padding: 16px;
+    background: var(--blue); color: #fff;
+    border: none; border-radius: var(--radius);
+    font-size: 16px; font-weight: 600;
+    cursor: pointer; letter-spacing: 0.02em;
+    transition: background 0.2s, transform 0.1s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .submit-btn:active { transform: scale(0.98); }
+  .submit-btn:disabled { background: #aaa; cursor: not-allowed; }
+  .submit-btn.loading { background: #444; }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    padding: 12px 20px; border-radius: var(--radius-sm);
+    font-size: 14px; font-weight: 500; color: #fff;
+    z-index: 999; max-width: 90vw; text-align: center;
+    display: none; box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    animation: slideup 0.3s ease;
+  }
+  @keyframes slideup { from { bottom: 0; opacity: 0; } to { bottom: 20px; opacity: 1; } }
+  .toast.success { background: var(--green); }
+  .toast.error { background: var(--red); }
+  .toast.info { background: var(--blue); }
+
+  /* Success screen */
+  #success-screen {
+    display: none; position: fixed; inset: 0;
+    background: #fff; z-index: 200;
+    flex-direction: column; align-items: center; justify-content: center;
+    padding: 32px;
+  }
+  #success-screen.show { display: flex; }
+  .success-icon { font-size: 64px; margin-bottom: 16px; }
+  .success-title { font-size: 22px; font-weight: 700; color: var(--green); margin-bottom: 8px; }
+  .success-msg { font-size: 14px; color: #666; text-align: center; line-height: 1.6; }
+  .new-btn {
+    margin-top: 24px; padding: 12px 32px;
+    background: var(--blue); color: #fff;
+    border: none; border-radius: var(--radius-sm);
+    font-size: 15px; font-weight: 600; cursor: pointer;
+  }
+
+  /* Config warning */
+  .config-banner {
+    background: var(--amber-light); border: 1px solid #FAC775;
+    border-radius: var(--radius-sm); padding: 10px 14px;
+    font-size: 13px; color: var(--amber);
+    margin-bottom: 12px; line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+    <rect x="1" y="3" width="22" height="13" rx="2"/>
+    <path d="M1 9h22M9 3v13M3 16l2 5h14l2-5"/>
+  </svg>
+  <div>
+    <h1>Nhận xe công tác</h1>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Config warning – ẩn khi đã cấu hình đúng -->
+  <div class="config-banner" id="config-banner">
+    ⚠️ <strong>Chưa cấu hình:</strong> Cần điền <code>APPS_SCRIPT_URL</code> vào dòng đầu file script. Xem hướng dẫn trong file <em>apps-script.gs</em>.
+  </div>
+
+  <div class="progress-bar"><div class="progress-bar-fill" id="progress" style="width:0%"></div></div>
+
+  <!-- SECTION 1: Ảnh 4 góc xe -->
+  <div class="section">
+    <div class="section-title"><span class="badge">1</span> Ảnh 4 góc xe</div>
+    <div class="photo-grid">
+      <div class="photo-item">
+        <div class="photo-label">📷 Góc trước trái</div>
+        <div class="photo-box" id="box-goc1">
+          <input type="file" accept="image/*" capture="environment" onchange="previewPhoto(this,'goc1','box-goc1')">
+          <div class="icon">📷</div>
+          <div class="caption">Chụp góc trước bên trái</div>
+          <span class="ok-badge">✓</span>
+          <button class="remove-btn" onclick="removePhoto(event,'goc1','box-goc1')">×</button>
+        </div>
+      </div>
+      <div class="photo-item">
+        <div class="photo-label">📷 Góc trước phải</div>
+        <div class="photo-box" id="box-goc2">
+          <input type="file" accept="image/*" capture="environment" onchange="previewPhoto(this,'goc2','box-goc2')">
+          <div class="icon">📷</div>
+          <div class="caption">Chụp góc trước bên phải</div>
+          <span class="ok-badge">✓</span>
+          <button class="remove-btn" onclick="removePhoto(event,'goc2','box-goc2')">×</button>
+        </div>
+      </div>
+      <div class="photo-item">
+        <div class="photo-label">📷 Góc sau trái</div>
+        <div class="photo-box" id="box-goc3">
+          <input type="file" accept="image/*" capture="environment" onchange="previewPhoto(this,'goc3','box-goc3')">
+          <div class="icon">📷</div>
+          <div class="caption">Chụp góc sau bên trái</div>
+          <span class="ok-badge">✓</span>
+          <button class="remove-btn" onclick="removePhoto(event,'goc3','box-goc3')">×</button>
+        </div>
+      </div>
+      <div class="photo-item">
+        <div class="photo-label">📷 Góc sau phải</div>
+        <div class="photo-box" id="box-goc4">
+          <input type="file" accept="image/*" capture="environment" onchange="previewPhoto(this,'goc4','box-goc4')">
+          <div class="icon">📷</div>
+          <div class="caption">Chụp góc sau bên phải</div>
+          <span class="ok-badge">✓</span>
+          <button class="remove-btn" onclick="removePhoto(event,'goc4','box-goc4')">×</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: Đồng hồ km -->
+  <div class="section">
+    <div class="section-title"><span class="badge">2</span> Đồng hồ km & Giấy tờ xe</div>
+    <div class="photo-grid">
+      <div class="photo-item">
+        <div class="photo-label">📷 Đồng hồ km</div>
+        <div class="photo-box" id="box-dongho">
+          <input type="file" accept="image/*" capture="environment" onchange="previewPhoto(this,'dongho','box-dongho')">
+          <div class="icon">🔢</div>
+          <div class="caption">Chụp đồng hồ số km hiện tại</div>
+          <span class="ok-badge">✓</span>
+          <button class="remove-btn" onclick="removePhoto(event,'dongho','box-dongho')">×</button>
+        </div>
+      </div>
+      <div class="photo-item">
+        <div class="photo-label">📷 Giấy tờ xe</div>
+        <div class="photo-box" id="box-giayto">
+          <input type="file" accept="image/*" capture="environment" onchange="previewPhoto(this,'giayto','box-giayto')">
+          <div class="icon">📄</div>
+          <div class="caption">Đăng ký, bảo hiểm, phù hiệu... để chung</div>
+          <span class="ok-badge">✓</span>
+          <button class="remove-btn" onclick="removePhoto(event,'giayto','box-giayto')">×</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: GPLX -->
+  <div class="section">
+    <div class="section-title"><span class="badge">3</span> Giấy phép lái xe (2 mặt)</div>
+    <div class="photo-grid">
+      <div class="photo-item">
+        <div class="photo-label">📷 GPLX – Mặt trước</div>
+        <div class="photo-box" id="box-gplx1">
+          <input type="file" accept="image/*" capture="environment" onchange="previewPhoto(this,'gplx1','box-gplx1')">
+          <div class="icon">🪪</div>
+          <div class="caption">Mặt có ảnh & họ tên</div>
+          <span class="ok-badge">✓</span>
+          <button class="remove-btn" onclick="removePhoto(event,'gplx1','box-gplx1')">×</button>
+        </div>
+      </div>
+      <div class="photo-item">
+        <div class="photo-label">📷 GPLX – Mặt sau</div>
+        <div class="photo-box" id="box-gplx2">
+          <input type="file" accept="image/*" capture="environment" onchange="previewPhoto(this,'gplx2','box-gplx2')">
+          <div class="icon">🪪</div>
+          <div class="caption">Mặt có hạng & ngày hết hạn</div>
+          <span class="ok-badge">✓</span>
+          <button class="remove-btn" onclick="removePhoto(event,'gplx2','box-gplx2')">×</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4: Thông tin lái xe -->
+  <div class="section">
+    <div class="section-title"><span class="badge">4</span> Thông tin lái xe</div>
+    <div class="field">
+      <label>Họ và tên <span class="req">*</span></label>
+      <input type="text" id="hoten" placeholder="Nguyễn Văn A" autocomplete="name">
+    </div>
+    <div class="field">
+      <label>Số điện thoại <span class="req">*</span></label>
+      <input type="tel" id="sdt" placeholder="0909 123 456" autocomplete="tel">
+    </div>
+    <div class="field row2">
+      <div>
+        <label>Phòng ban <span class="req">*</span></label>
+        <select id="phongban">
+          <option value="">-- Chọn --</option>
+          <option>Ban Giám Đốc</option>
+          <option>Kế Toán</option>
+          <option>HCNS</option>
+          <option>Xuất Nhập Khẩu</option>
+          <option>Kho</option>
+          <option>IT</option>
+          <option>Kinh Doanh</option>
+          <option>Vận Tải</option>
+          <option>Khác</option>
+        </select>
+      </div>
+      <div>
+        <label>Biển số xe</label>
+        <input type="text" id="biensoxe" placeholder="51A-123.45">
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: Thông tin xe -->
+  <div class="section">
+    <div class="section-title"><span class="badge">5</span> Tình trạng xe khi nhận</div>
+    <div class="field row2">
+      <div>
+        <label>Km hiện tại <span class="req">*</span></label>
+        <input type="number" id="sokm" placeholder="12500" min="0">
+      </div>
+      <div>
+        <label>Mức pin (%) <span class="req">*</span></label>
+        <input type="number" id="mucpin" placeholder="85" min="0" max="100">
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 6: Mục đích công tác -->
+  <div class="section">
+    <div class="section-title"><span class="badge">6</span> Mục đích công tác</div>
+    <div class="field">
+      <label>Mô tả mục đích <span class="req">*</span></label>
+      <textarea id="mucdich" rows="3" placeholder="VD: Giao hàng cho khách tại Bình Dương, gặp đối tác tại Q.1..."></textarea>
+    </div>
+    <div class="field">
+      <label>Địa điểm đến</label>
+      <input type="text" id="diadiem" placeholder="VD: Khu CN Sóng Thần, Bình Dương">
+    </div>
+    <div class="field">
+      <label>Dự kiến về lúc</label>
+      <input type="text" id="thoigian" placeholder="VD: Chiều cùng ngày, ngày mai sáng...">
+    </div>
+  </div>
+
+  <button class="submit-btn" id="submit-btn" onclick="submitForm()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <path d="M5 12l5 5L20 7"/>
+    </svg>
+    Gửi thông tin nhận xe
+  </button>
+  <p style="text-align:center; font-size:12px; color:#aaa; margin-top:10px;">
+    Dữ liệu sẽ được lưu vào Google Sheets & Drive
+  </p>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Success screen -->
+<div id="success-screen">
+  <div class="success-icon">✅</div>
+  <div class="success-title">Đã ghi nhận!</div>
+  <div class="success-msg" id="success-msg">
+    Thông tin nhận xe đã được lưu thành công.<br>
+    Chúc anh/chị công tác tốt!
+  </div>
+  <button class="new-btn" onclick="resetForm()">Nhận xe mới</button>
+</div>
+
+<script>
+  // ======================================================
+  // ⚙️ CẤU HÌNH – Điền URL Apps Script sau khi deploy
+  // ======================================================
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzob4p0xuCicR901WNRhkACrOg4omIl4n0vKgebfGL0BDl-Q9r744Y1jLQ0elwJhkS/exec';
+  // ======================================================
+
+  const photos = {};
+  const REQUIRED_PHOTOS = ['goc1','goc2','goc3','goc4','dongho','giayto','gplx1','gplx2'];
+  const REQUIRED_FIELDS = ['hoten','sdt','phongban','sokm','mucpin','mucdich'];
+
+  // Check config
+  if (APPS_SCRIPT_URL === 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+    document.getElementById('config-banner').style.display = 'block';
+  } else {
+    document.getElementById('config-banner').style.display = 'none';
+  }
+
+  function previewPhoto(input, key, boxId) {
+    const file = input.files[0];
+    if (!file) return;
+    const box = document.getElementById(boxId);
+    const reader = new FileReader();
+    reader.onload = e => {
+      // Remove old img
+      const old = box.querySelector('img');
+      if (old) old.remove();
+      const img = document.createElement('img');
+      img.src = e.target.result;
+      box.insertBefore(img, box.querySelector('.icon'));
+      box.classList.add('has-photo');
+      photos[key] = { file, dataUrl: e.target.result, name: file.name };
+      updateProgress();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function removePhoto(e, key, boxId) {
+    e.preventDefault(); e.stopPropagation();
+    const box = document.getElementById(boxId);
+    const img = box.querySelector('img');
+    if (img) img.remove();
+    box.classList.remove('has-photo');
+    delete photos[key];
+    // Reset file input
+    const inp = box.querySelector('input[type=file]');
+    inp.value = '';
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const photosDone = REQUIRED_PHOTOS.filter(k => photos[k]).length;
+    const fieldsDone = REQUIRED_FIELDS.filter(id => {
+      const el = document.getElementById(id);
+      return el && el.value.trim();
+    }).length;
+    const total = REQUIRED_PHOTOS.length + REQUIRED_FIELDS.length;
+    const done = photosDone + fieldsDone;
+    document.getElementById('progress').style.width = Math.round(done/total*100) + '%';
+  }
+
+  // Update progress on field change
+  REQUIRED_FIELDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', updateProgress);
+  });
+
+  function showToast(msg, type='info', dur=3000) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.className = 'toast ' + type;
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', dur);
+  }
+
+  function toBase64(dataUrl) {
+    return dataUrl.split(',')[1];
+  }
+
+  async function submitForm() {
+    // Validate
+    for (const id of REQUIRED_FIELDS) {
+      const el = document.getElementById(id);
+      if (!el.value.trim()) {
+        el.focus(); el.style.borderColor = '#E24B4A';
+        showToast('⚠️ Vui lòng điền đầy đủ thông tin bắt buộc', 'error');
+        return;
+      }
+      el.style.borderColor = '';
+    }
+    for (const k of REQUIRED_PHOTOS) {
+      if (!photos[k]) {
+        showToast('⚠️ Vui lòng chụp đủ tất cả 8 hình ảnh', 'error', 4000);
+        return;
+      }
+    }
+
+    if (APPS_SCRIPT_URL === 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+      showToast('⚠️ Chưa cấu hình Apps Script URL!', 'error', 5000);
+      return;
+    }
+
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.classList.add('loading');
+    btn.innerHTML = '<span>⏳ Đang gửi dữ liệu...</span>';
+
+    try {
+      const now = new Date();
+      const payload = {
+        timestamp: now.toLocaleString('vi-VN'),
+        hoten: document.getElementById('hoten').value.trim(),
+        sdt: document.getElementById('sdt').value.trim(),
+        phongban: document.getElementById('phongban').value,
+        biensoxe: document.getElementById('biensoxe').value.trim(),
+        sokm: document.getElementById('sokm').value,
+        mucpin: document.getElementById('mucpin').value,
+        mucdich: document.getElementById('mucdich').value.trim(),
+        diadiem: document.getElementById('diadiem').value.trim(),
+        thoigian: document.getElementById('thoigian').value.trim(),
+        photos: {}
+      };
+
+      for (const k of REQUIRED_PHOTOS) {
+        payload.photos[k] = {
+          data: toBase64(photos[k].dataUrl),
+          name: photos[k].name || (k + '.jpg'),
+          mimeType: photos[k].file ? photos[k].file.type : 'image/jpeg'
+        };
+      }
+
+      const response = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+        headers: { 'Content-Type': 'text/plain' }
+      });
+
+      const result = await response.json();
+      if (result.status === 'ok') {
+        document.getElementById('success-msg').innerHTML =
+          `Thông tin của <strong>${payload.hoten}</strong> đã được lưu.<br>
+           <a href="${result.sheetUrl}" target="_blank" style="color:var(--blue);">Xem Google Sheets →</a><br>
+           <small style="color:#888">Mã phiên: ${result.rowId || '---'}</small>`;
+        document.getElementById('success-screen').classList.add('show');
+      } else {
+        throw new Error(result.message || 'Lỗi không xác định');
+      }
+    } catch (err) {
+      showToast('❌ Lỗi: ' + err.message, 'error', 6000);
+      btn.disabled = false;
+      btn.classList.remove('loading');
+      btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12l5 5L20 7"/></svg> Thử lại';
+    }
+  }
+
+  function resetForm() {
+    document.getElementById('success-screen').classList.remove('show');
+    document.querySelector('form') && document.querySelector('form').reset();
+    REQUIRED_FIELDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.value = ''; el.style.borderColor = ''; }
+    });
+    document.getElementById('biensoxe').value = '';
+    document.getElementById('diadiem').value = '';
+    document.getElementById('thoigian').value = '';
+    REQUIRED_PHOTOS.forEach(k => {
+      const boxId = 'box-' + k;
+      const box = document.getElementById(boxId);
+      if (box) {
+        const img = box.querySelector('img');
+        if (img) img.remove();
+        box.classList.remove('has-photo');
+        const inp = box.querySelector('input[type=file]');
+        if (inp) inp.value = '';
+      }
+    });
+    Object.keys(photos).forEach(k => delete photos[k]);
+    updateProgress();
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = false;
+    btn.classList.remove('loading');
+    btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12l5 5L20 7"/></svg> Gửi thông tin nhận xe';
+    window.scrollTo(0,0);
+  }
+</script>
+</body>
+</html>
